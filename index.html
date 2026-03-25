@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Timestamp Report - Dark/Light Theme</title>
+    <title>Timestamp Report - Liquid Design</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease;
+            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease, all 0.2s ease;
         }
 
         /* ========== THEME VARIABLES ========== */
         body {
             font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-            padding: 20px;
+            padding: clamp(12px, 3vw, 24px);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -25,13 +25,13 @@
 
         /* Light Theme (default) */
         body.light-theme {
-            background: #f0f2f5;
-            --card-bg: #ffffff;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e6e9f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
             --text-primary: #1f2e3a;
             --text-secondary: #4b5563;
             --border-light: #e2e8f0;
             --preview-bg: #f8fafc;
-            --info-bg: #1e293b;
+            --info-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             --info-text: white;
             --msg-preview-bg: #f1f5f9;
             --msg-text: #1f2e3a;
@@ -41,17 +41,19 @@
             --btn-icon-hover: #e2e8f0;
             --manual-bg: #fffbeb;
             --manual-border: #fcd34d;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         /* Dark Theme */
         body.dark-theme {
-            background: #0a0c15;
-            --card-bg: #1e1f2c;
+            background: linear-gradient(135deg, #0a0c15 0%, #0f111a 100%);
+            --card-bg: rgba(30, 31, 44, 0.95);
             --text-primary: #e2e8f0;
             --text-secondary: #9ca3af;
             --border-light: #2d3748;
             --preview-bg: #2a2b3a;
-            --info-bg: #0f111a;
+            --info-bg: linear-gradient(135deg, #0f111a 0%, #1a1c2a 100%);
             --info-text: #e2e8f0;
             --msg-preview-bg: #2a2b3a;
             --msg-text: #e2e8f0;
@@ -61,151 +63,299 @@
             --btn-icon-hover: #3b4252;
             --manual-bg: #2d2a1a;
             --manual-border: #b45309;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
         }
 
         .card {
-            max-width: 480px;
+            max-width: 1200px;
             width: 100%;
             background: var(--card-bg);
-            border-radius: 32px;
-            padding: 24px 20px 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: clamp(24px, 5vw, 40px);
+            padding: clamp(20px, 4vw, 32px);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Theme Toggle Button */
+        /* ========== LIQUID GRID LAYOUT ========== */
+        .liquid-container {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(16px, 3vw, 24px);
+        }
+
+        /* Responsive Grid untuk Landscape */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .liquid-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            
+            .left-section {
+                grid-column: 1;
+            }
+            
+            .right-section {
+                grid-column: 2;
+            }
+            
+            .full-width {
+                grid-column: 1 / -1;
+            }
+            
+            .preview img {
+                max-height: 250px;
+            }
+            
+            .info {
+                margin-bottom: 0;
+            }
+            
+            .btn-group {
+                flex-direction: row;
+            }
+        }
+
+        /* Untuk tablet potrait */
+        @media (min-width: 768px) and (orientation: portrait) {
+            .card {
+                max-width: 600px;
+            }
+            
+            .preview img {
+                max-height: 220px;
+            }
+        }
+
+        /* Untuk layar desktop besar */
+        @media (min-width: 1024px) {
+            .card {
+                max-width: 1100px;
+            }
+            
+            .liquid-container {
+                gap: 32px;
+            }
+            
+            .preview img {
+                max-height: 300px;
+            }
+            
+            .time {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Untuk mobile landscape */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .card {
+                max-width: 95%;
+            }
+            
+            .liquid-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            
+            .left-section {
+                grid-column: 1;
+            }
+            
+            .right-section {
+                grid-column: 2;
+            }
+            
+            .full-width {
+                grid-column: 1 / -1;
+            }
+            
+            .preview img {
+                max-height: 150px;
+            }
+            
+            .time {
+                font-size: 1.5rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn-primary {
+                padding: 10px;
+            }
+        }
+
         .theme-toggle {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 8px;
+            margin-bottom: clamp(12px, 2vw, 20px);
         }
+        
         .theme-btn {
             background: var(--btn-icon-bg);
             border: none;
-            padding: 8px 14px;
+            padding: clamp(6px, 1.5vw, 10px) clamp(12px, 2vw, 18px);
             border-radius: 40px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             color: var(--text-primary);
-            transition: 0.2s;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
         }
+        
         .theme-btn:active {
             transform: scale(0.96);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: clamp(16px, 3vw, 24px);
         }
+        
         .header i {
-            font-size: 40px;
+            font-size: clamp(32px, 6vw, 48px);
             color: #25D366;
             background: rgba(37, 211, 102, 0.15);
-            padding: 12px;
+            padding: clamp(10px, 2vw, 14px);
             border-radius: 60px;
         }
+        
         .header h1 {
-            font-size: 1.5rem;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
             margin-top: 12px;
             color: var(--text-primary);
         }
+        
         .header p {
-            font-size: 0.75rem;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
             color: var(--text-secondary);
             margin-top: 4px;
         }
 
         .image-buttons {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: clamp(10px, 2vw, 16px);
+            margin-bottom: clamp(16px, 3vw, 24px);
+            flex-wrap: wrap;
         }
+        
         .btn-icon {
             flex: 1;
+            min-width: 120px;
             background: var(--btn-icon-bg);
             border: none;
-            padding: 14px;
+            padding: clamp(12px, 2.5vw, 16px);
             border-radius: 60px;
             font-weight: 600;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             cursor: pointer;
             color: var(--text-primary);
-            transition: 0.2s;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
         }
-        .btn-icon:active { transform: scale(0.96); background: var(--btn-icon-hover); }
+        
+        .btn-icon:active {
+            transform: scale(0.97);
+            background: var(--btn-icon-hover);
+        }
 
         .preview {
             background: var(--preview-bg);
-            border-radius: 20px;
-            padding: 12px;
+            border-radius: clamp(16px, 3vw, 24px);
+            padding: clamp(12px, 2vw, 16px);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: clamp(16px, 3vw, 20px);
             border: 1px solid var(--border-light);
+            transition: all 0.3s;
         }
+        
         .preview img {
             max-width: 100%;
-            max-height: 180px;
-            border-radius: 16px;
+            max-height: clamp(150px, 30vh, 280px);
+            border-radius: clamp(12px, 2vw, 20px);
             object-fit: contain;
         }
+        
         .preview-text {
-            font-size: 11px;
+            font-size: clamp(10px, 1.8vw, 12px);
             color: var(--text-secondary);
             margin-top: 8px;
         }
 
         .info {
             background: var(--info-bg);
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 20px;
+            border-radius: clamp(20px, 4vw, 28px);
+            padding: clamp(14px, 2.5vw, 20px);
+            margin-bottom: clamp(16px, 3vw, 20px);
             color: var(--info-text);
+            box-shadow: var(--shadow-sm);
         }
+        
         .time {
-            font-size: 2rem;
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
             font-weight: 700;
             letter-spacing: 1px;
+            line-height: 1.2;
         }
+        
         .date {
-            font-size: 0.8rem;
-            opacity: 0.8;
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            opacity: 0.85;
             margin-bottom: 12px;
         }
+        
         .loc {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px 12px;
+            background: rgba(255,255,255,0.12);
+            padding: clamp(8px, 1.8vw, 12px);
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
             word-break: break-all;
+            flex-wrap: wrap;
         }
+        
         .refresh-loc {
             background: rgba(255,255,255,0.2);
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: clamp(9px, 1.5vw, 11px);
             cursor: pointer;
             margin-left: auto;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        
+        .refresh-loc:active {
+            transform: scale(0.95);
         }
 
         .btn-group {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: clamp(10px, 2vw, 16px);
+            margin-bottom: clamp(12px, 2vw, 16px);
+            flex-wrap: wrap;
         }
+        
         .btn-primary {
             flex: 1;
+            min-width: 140px;
             border: none;
-            padding: 14px;
+            padding: clamp(12px, 2.5vw, 16px);
             border-radius: 60px;
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.95rem);
             font-weight: bold;
             color: white;
             display: flex;
@@ -213,81 +363,128 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
-        .btn-primary:active { transform: scale(0.97); }
+        
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        
         .btn-copy {
             background: #10b981;
         }
+        
         .btn-wa {
             background: #25D366;
         }
+        
         .btn-wa-text {
             background: #128C7E;
         }
 
         .msg-preview {
             background: var(--msg-preview-bg);
-            border-radius: 20px;
-            padding: 12px;
-            font-size: 0.7rem;
+            border-radius: clamp(16px, 3vw, 24px);
+            padding: clamp(12px, 2vw, 16px);
+            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
             font-family: monospace;
             white-space: pre-wrap;
-            margin-top: 16px;
-            max-height: 120px;
+            margin-top: clamp(12px, 2vw, 16px);
+            max-height: clamp(100px, 20vh, 150px);
             overflow-y: auto;
             color: var(--msg-text);
             border: 1px solid var(--border-light);
+            line-height: 1.5;
         }
 
         .manual-box {
-            margin-top: 16px;
+            margin-top: clamp(12px, 2vw, 16px);
             background: var(--manual-bg);
-            border-radius: 20px;
-            padding: 12px;
+            border-radius: clamp(16px, 3vw, 24px);
+            padding: clamp(10px, 2vw, 14px);
             border: 1px solid var(--manual-border);
             display: none;
         }
-        .manual-box.show { display: block; }
+        
+        .manual-box.show {
+            display: block;
+        }
+        
         .manual-box textarea {
             width: 100%;
-            padding: 12px;
+            padding: clamp(10px, 2vw, 14px);
             border-radius: 16px;
             border: 1px solid var(--manual-border);
             font-family: monospace;
-            font-size: 0.7rem;
+            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
             background: var(--card-bg);
             color: var(--text-primary);
+            resize: vertical;
         }
+        
         .btn-select {
             background: #f59e0b;
             border: none;
-            padding: 10px;
+            padding: clamp(8px, 1.8vw, 12px);
             border-radius: 40px;
             color: white;
             font-weight: bold;
             width: 100%;
             margin-top: 8px;
             cursor: pointer;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
         }
 
         .status {
-            margin-top: 16px;
-            font-size: 0.7rem;
+            margin-top: clamp(12px, 2vw, 16px);
+            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
             text-align: center;
-            padding: 8px;
+            padding: clamp(8px, 1.8vw, 12px);
             border-radius: 40px;
             background: var(--status-bg);
             color: var(--status-text);
         }
-        .status.success { background: #d1fae5; color: #065f46; }
-        .status.error { background: #fee2e2; color: #991b1b; }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         footer {
             text-align: center;
-            font-size: 0.6rem;
+            font-size: clamp(0.55rem, 1.5vw, 0.65rem);
             color: var(--text-secondary);
-            margin-top: 20px;
+            margin-top: clamp(16px, 3vw, 24px);
+        }
+
+        /* Animasi loading */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fa-spinner {
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        /* Scrollbar styling */
+        .msg-preview::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .msg-preview::-webkit-scrollbar-track {
+            background: var(--border-light);
+            border-radius: 10px;
+        }
+        
+        .msg-preview::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -298,53 +495,65 @@
             <i class="fas fa-moon"></i> <span>Dark Mode</span>
         </button>
     </div>
-    <div class="header">
-        <i class="fas fa-camera-retro"></i>
-        <h1>Timestamp Report</h1>
-        <p>Ambil gambar | Stamp waktu & lokasi | Kirim laporan</p>
-    </div>
+    
+    <div class="liquid-container">
+        <!-- LEFT SECTION -->
+        <div class="left-section">
+            <div class="header">
+                <i class="fas fa-camera-retro"></i>
+                <h1>Timestamp Report</h1>
+                <p>Ambil gambar | Stamp waktu & lokasi | Kirim laporan</p>
+            </div>
 
-    <!-- Tombol Galeri & Kamera -->
-    <div class="image-buttons">
-        <button class="btn-icon" id="galleryBtn"><i class="fas fa-images"></i> Galeri</button>
-        <button class="btn-icon" id="cameraBtn"><i class="fas fa-camera"></i> Kamera</button>
-    </div>
+            <!-- Tombol Galeri & Kamera -->
+            <div class="image-buttons">
+                <button class="btn-icon" id="galleryBtn"><i class="fas fa-images"></i> Galeri</button>
+                <button class="btn-icon" id="cameraBtn"><i class="fas fa-camera"></i> Kamera</button>
+            </div>
 
-    <!-- Preview Gambar -->
-    <div class="preview">
-        <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14h-2v-4H7v-2h2V7h2v4h4v2h-4v4z'/%3E%3C/svg%3E" alt="Preview">
-        <div class="preview-text"><i class="fas fa-watermark"></i> Watermark otomatis</div>
-    </div>
+            <!-- Preview Gambar -->
+            <div class="preview">
+                <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14h-2v-4H7v-2h2V7h2v4h4v2h-4v4z'/%3E%3C/svg%3E" alt="Preview">
+                <div class="preview-text"><i class="fas fa-watermark"></i> Watermark otomatis</div>
+            </div>
+        </div>
 
-    <!-- Info Waktu & Lokasi -->
-    <div class="info">
-        <div class="time"><span id="displayTime">--:--</span> <span id="displayAmPm" style="font-size:1rem;">--</span></div>
-        <div class="date" id="displayDate">---, -- --- ----</div>
-        <div class="loc">
-            <i class="fas fa-map-marker-alt"></i>
-            <span id="displayLocation">Mengambil lokasi...</span>
-            <span class="refresh-loc" id="refreshGeoBtn"><i class="fas fa-sync-alt"></i> Refresh</span>
+        <!-- RIGHT SECTION -->
+        <div class="right-section">
+            <!-- Info Waktu & Lokasi -->
+            <div class="info">
+                <div class="time"><span id="displayTime">--:--</span> <span id="displayAmPm" style="font-size:0.8rem;">--</span></div>
+                <div class="date" id="displayDate">---, -- --- ----</div>
+                <div class="loc">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="displayLocation">Mengambil lokasi...</span>
+                    <span class="refresh-loc" id="refreshGeoBtn"><i class="fas fa-sync-alt"></i> Refresh</span>
+                </div>
+            </div>
+
+            <!-- Dua Tombol Utama -->
+            <div class="btn-group">
+                <button class="btn-primary btn-wa-text" id="sendTextBtn"><i class="fab fa-whatsapp"></i> Kirim Teks</button>
+                <button class="btn-primary btn-wa" id="sendImageBtn"><i class="fas fa-camera"></i> Kirim Gambar</button>
+            </div>
+        </div>
+
+        <!-- FULL WIDTH SECTION (Preview Pesan & Manual Copy) -->
+        <div class="full-width">
+            <!-- Preview Pesan -->
+            <div class="msg-preview" id="messagePreview">Menunggu data...</div>
+
+            <!-- Kotak Manual Copy (fallback) -->
+            <div class="manual-box" id="manualBox">
+                <textarea id="manualText" rows="4" readonly></textarea>
+                <button class="btn-select" id="selectAllBtn"><i class="fas fa-hand-pointer"></i> Pilih Semua Teks</button>
+                <p style="font-size:10px; margin-top:8px; color:var(--manual-border);">Tekan & tahan pada teks ➜ pilih Salin</p>
+            </div>
+
+            <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
+            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait & Landscape</footer>
         </div>
     </div>
-
-    <!-- Dua Tombol Utama -->
-    <div class="btn-group">
-        <button class="btn-primary btn-wa-text" id="sendTextBtn"><i class="fab fa-whatsapp"></i> Kirim Teks ke WA</button>
-        <button class="btn-primary btn-wa" id="sendImageBtn"><i class="fas fa-camera"></i> Kirim Gambar + Teks</button>
-    </div>
-
-    <!-- Preview Pesan -->
-    <div class="msg-preview" id="messagePreview">Menunggu data...</div>
-
-    <!-- Kotak Manual Copy (fallback) -->
-    <div class="manual-box" id="manualBox">
-        <textarea id="manualText" rows="4" readonly></textarea>
-        <button class="btn-select" id="selectAllBtn"><i class="fas fa-hand-pointer"></i> Pilih Semua Teks</button>
-        <p style="font-size:10px; margin-top:8px; color:var(--manual-border);">Tekan & tahan pada teks ➜ pilih Salin</p>
-    </div>
-
-    <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
-    <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp</footer>
 </div>
 
 <script>
@@ -664,55 +873,13 @@
             statusMsg.classList.add('error');
         } finally {
             sendImageBtn.disabled = false;
-            sendImageBtn.innerHTML = '<i class="fas fa-camera"></i> Kirim Gambar + Teks';
+            sendImageBtn.innerHTML = '<i class="fas fa-camera"></i> Kirim Gambar';
         }
     }
     
     sendImageBtn.addEventListener('click', sendImageToWA);
 
     // ==================== COPY LAPORAN (FALLBACK) ====================
-    async function copyReport() {
-        if (!currentMessage || currentMessage === "Menunggu data...") {
-            statusMsg.innerHTML = '⏳ Data belum siap';
-            return;
-        }
-        
-        manualBox.classList.remove('show');
-        
-        try {
-            await navigator.clipboard.writeText(currentMessage);
-            statusMsg.innerHTML = '✅ Laporan tersalin!';
-            statusMsg.classList.add('success');
-            setTimeout(() => statusMsg.classList.remove('success'), 2000);
-            return;
-        } catch (e) {}
-        
-        try {
-            const temp = document.createElement('textarea');
-            temp.value = currentMessage;
-            temp.style.position = 'fixed';
-            temp.style.top = '-1000px';
-            document.body.appendChild(temp);
-            temp.select();
-            const ok = document.execCommand('copy');
-            document.body.removeChild(temp);
-            if (ok) {
-                statusMsg.innerHTML = '✅ Laporan tersalin!';
-                statusMsg.classList.add('success');
-                setTimeout(() => statusMsg.classList.remove('success'), 2000);
-                return;
-            }
-        } catch (e) {}
-        
-        manualBox.classList.add('show');
-        manualText.value = currentMessage;
-        manualText.focus();
-        manualText.select();
-        statusMsg.innerHTML = '📋 Tekan & tahan pada teks, pilih Salin';
-        statusMsg.classList.add('error');
-        manualBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    
     selectAllBtn.addEventListener('click', () => {
         manualText.select();
         manualText.setSelectionRange(0, 99999);
@@ -722,6 +889,12 @@
     });
     
     updateMessage();
+    
+    // Deteksi perubahan orientasi untuk mengoptimalkan tampilan
+    window.addEventListener('resize', () => {
+        // Optional: bisa tambahkan logika tambahan jika diperlukan
+        console.log('Orientation changed');
+    });
 </script>
 </body>
 </html>
