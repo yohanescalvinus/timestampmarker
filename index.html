@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Timestamp Report</title>
+    <title>Timestamp Report - Dark/Light Theme</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease;
         }
 
+        /* ========== THEME VARIABLES ========== */
         body {
-            background: #0c0f1c;
             font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
             padding: 20px;
             min-height: 100vh;
@@ -22,13 +23,76 @@
             align-items: center;
         }
 
+        /* Light Theme (default) */
+        body.light-theme {
+            background: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-primary: #1f2e3a;
+            --text-secondary: #4b5563;
+            --border-light: #e2e8f0;
+            --preview-bg: #f8fafc;
+            --info-bg: #1e293b;
+            --info-text: white;
+            --msg-preview-bg: #f1f5f9;
+            --msg-text: #1f2e3a;
+            --status-bg: #eef2ff;
+            --status-text: #1f3a5f;
+            --btn-icon-bg: #f1f5f9;
+            --btn-icon-hover: #e2e8f0;
+            --manual-bg: #fffbeb;
+            --manual-border: #fcd34d;
+        }
+
+        /* Dark Theme */
+        body.dark-theme {
+            background: #0a0c15;
+            --card-bg: #1e1f2c;
+            --text-primary: #e2e8f0;
+            --text-secondary: #9ca3af;
+            --border-light: #2d3748;
+            --preview-bg: #2a2b3a;
+            --info-bg: #0f111a;
+            --info-text: #e2e8f0;
+            --msg-preview-bg: #2a2b3a;
+            --msg-text: #e2e8f0;
+            --status-bg: #2d3748;
+            --status-text: #cbd5e1;
+            --btn-icon-bg: #2d3748;
+            --btn-icon-hover: #3b4252;
+            --manual-bg: #2d2a1a;
+            --manual-border: #b45309;
+        }
+
         .card {
             max-width: 480px;
             width: 100%;
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 32px;
             padding: 24px 20px 32px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        .theme-btn {
+            background: var(--btn-icon-bg);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+            transition: 0.2s;
+        }
+        .theme-btn:active {
+            transform: scale(0.96);
         }
 
         .header {
@@ -38,18 +102,18 @@
         .header i {
             font-size: 40px;
             color: #25D366;
-            background: #e8f5e9;
+            background: rgba(37, 211, 102, 0.15);
             padding: 12px;
             border-radius: 60px;
         }
         .header h1 {
             font-size: 1.5rem;
             margin-top: 12px;
-            color: #1f2e3a;
+            color: var(--text-primary);
         }
         .header p {
             font-size: 0.75rem;
-            color: #6c7a8a;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
@@ -60,7 +124,7 @@
         }
         .btn-icon {
             flex: 1;
-            background: #f1f5f9;
+            background: var(--btn-icon-bg);
             border: none;
             padding: 14px;
             border-radius: 60px;
@@ -70,18 +134,18 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            color: #1f2e3a;
+            color: var(--text-primary);
             transition: 0.2s;
         }
-        .btn-icon:active { transform: scale(0.96); background: #e2e8f0; }
+        .btn-icon:active { transform: scale(0.96); background: var(--btn-icon-hover); }
 
         .preview {
-            background: #f8fafc;
+            background: var(--preview-bg);
             border-radius: 20px;
             padding: 12px;
             text-align: center;
             margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-light);
         }
         .preview img {
             max-width: 100%;
@@ -91,16 +155,16 @@
         }
         .preview-text {
             font-size: 11px;
-            color: #6c86a3;
+            color: var(--text-secondary);
             margin-top: 8px;
         }
 
         .info {
-            background: #1e293b;
+            background: var(--info-bg);
             border-radius: 24px;
             padding: 16px;
             margin-bottom: 20px;
-            color: white;
+            color: var(--info-text);
         }
         .time {
             font-size: 2rem;
@@ -109,7 +173,7 @@
         }
         .date {
             font-size: 0.8rem;
-            opacity: 0.7;
+            opacity: 0.8;
             margin-bottom: 12px;
         }
         .loc {
@@ -163,7 +227,7 @@
         }
 
         .msg-preview {
-            background: #f1f5f9;
+            background: var(--msg-preview-bg);
             border-radius: 20px;
             padding: 12px;
             font-size: 0.7rem;
@@ -172,14 +236,16 @@
             margin-top: 16px;
             max-height: 120px;
             overflow-y: auto;
+            color: var(--msg-text);
+            border: 1px solid var(--border-light);
         }
 
         .manual-box {
             margin-top: 16px;
-            background: #fffbeb;
+            background: var(--manual-bg);
             border-radius: 20px;
             padding: 12px;
-            border: 1px solid #fcd34d;
+            border: 1px solid var(--manual-border);
             display: none;
         }
         .manual-box.show { display: block; }
@@ -187,10 +253,11 @@
             width: 100%;
             padding: 12px;
             border-radius: 16px;
-            border: 1px solid #fde68a;
+            border: 1px solid var(--manual-border);
             font-family: monospace;
             font-size: 0.7rem;
-            background: white;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
         .btn-select {
             background: #f59e0b;
@@ -210,8 +277,8 @@
             text-align: center;
             padding: 8px;
             border-radius: 40px;
-            background: #eef2ff;
-            color: #1f3a5f;
+            background: var(--status-bg);
+            color: var(--status-text);
         }
         .status.success { background: #d1fae5; color: #065f46; }
         .status.error { background: #fee2e2; color: #991b1b; }
@@ -219,13 +286,18 @@
         footer {
             text-align: center;
             font-size: 0.6rem;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin-top: 20px;
         }
     </style>
 </head>
-<body>
+<body class="light-theme">
 <div class="card">
+    <div class="theme-toggle">
+        <button class="theme-btn" id="themeToggleBtn">
+            <i class="fas fa-moon"></i> <span>Dark Mode</span>
+        </button>
+    </div>
     <div class="header">
         <i class="fas fa-camera-retro"></i>
         <h1>Timestamp Report</h1>
@@ -268,7 +340,7 @@
     <div class="manual-box" id="manualBox">
         <textarea id="manualText" rows="4" readonly></textarea>
         <button class="btn-select" id="selectAllBtn"><i class="fas fa-hand-pointer"></i> Pilih Semua Teks</button>
-        <p style="font-size:10px; margin-top:8px; color:#b45309;">Tekan & tahan pada teks ➜ pilih Salin</p>
+        <p style="font-size:10px; margin-top:8px; color:var(--manual-border);">Tekan & tahan pada teks ➜ pilih Salin</p>
     </div>
 
     <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
@@ -299,6 +371,43 @@
     const displayDate = document.getElementById('displayDate');
     const displayLocation = document.getElementById('displayLocation');
     const refreshGeoBtn = document.getElementById('refreshGeoBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    // ==================== THEME TOGGLE ====================
+    function setTheme(theme) {
+        const body = document.body;
+        if (theme === 'dark') {
+            body.classList.remove('light-theme');
+            body.classList.add('dark-theme');
+            localStorage.setItem('timestampTheme', 'dark');
+            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span>Light Mode</span>';
+        } else {
+            body.classList.remove('dark-theme');
+            body.classList.add('light-theme');
+            localStorage.setItem('timestampTheme', 'light');
+            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span>Dark Mode</span>';
+        }
+    }
+    
+    function initTheme() {
+        const savedTheme = localStorage.getItem('timestampTheme');
+        if (savedTheme === 'dark') {
+            setTheme('dark');
+        } else {
+            setTheme('light');
+        }
+    }
+    
+    themeToggleBtn.addEventListener('click', () => {
+        const isDark = document.body.classList.contains('dark-theme');
+        if (isDark) {
+            setTheme('light');
+        } else {
+            setTheme('dark');
+        }
+    });
+    
+    initTheme();
 
     // ==================== FUNGSI WAKTU ====================
     function getTimestamp() {
@@ -345,7 +454,7 @@
         manualText.value = currentMessage;
     }
 
-    // ==================== LOKASI (DIPAKSA) ====================
+    // ==================== LOKASI ====================
     function forceGetLocation() {
         statusMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Meminta izin lokasi...';
         statusMsg.classList.remove('success', 'error');
@@ -490,7 +599,7 @@
     galleryBtn.addEventListener('click', () => triggerImage(false));
     cameraBtn.addEventListener('click', () => triggerImage(true));
 
-    // ==================== KIRIM TEKS KE WA (BARU) ====================
+    // ==================== KIRIM TEKS KE WA ====================
     function sendTextToWA() {
         if (!currentMessage || currentMessage === "Menunggu data...") {
             statusMsg.innerHTML = '⏳ Data laporan belum siap';
