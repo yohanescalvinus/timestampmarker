@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Timestamp Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0c0f1c;
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            max-width: 480px;
+            width: 100%;
+            background: #fff;
+            border-radius: 32px;
+            padding: 24px 20px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header i {
+            font-size: 40px;
+            color: #25D366;
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 60px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            margin-top: 12px;
+            color: #1f2e3a;
+        }
+        .header p {
+            font-size: 0.75rem;
+            color: #6c7a8a;
+            margin-top: 4px;
+        }
+
+        .image-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .btn-icon {
+            flex: 1;
+            background: #f1f5f9;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #1f2e3a;
+            transition: 0.2s;
+        }
+        .btn-icon:active { transform: scale(0.96); background: #e2e8f0; }
+
+        .preview {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .preview img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 16px;
+            object-fit: contain;
+        }
+        .preview-text {
+            font-size: 11px;
+            color: #6c86a3;
+            margin-top: 8px;
+        }
+
+        .info {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .time {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .date {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+        .loc {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            word-break: break-all;
+        }
+        .refresh-loc {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .btn-primary {
+            flex: 1;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-copy {
+            background: #10b981;
+        }
+        .btn-wa {
+            background: #25D366;
+        }
+        .btn-wa-text {
+            background: #128C7E;
+        }
+
+        .msg-preview {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 12px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 16px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .manual-box {
+            margin-top: 16px;
+            background: #fffbeb;
+            border-radius: 20px;
+            padding: 12px;
+            border: 1px solid #fcd34d;
+            display: none;
+        }
+        .manual-box.show { display: block; }
+        .manual-box textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid #fde68a;
+            font-family: monospace;
+            font-size: 0.7rem;
+            background: white;
+        }
+        .btn-select {
+            background: #f59e0b;
+            border: none;
+            padding: 10px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .status {
+            margin-top: 16px;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 8px;
+            border-radius: 40px;
+            background: #eef2ff;
+            color: #1f3a5f;
+        }
+        .status.success { background: #d1fae5; color: #065f46; }
+        .status.error { background: #fee2e2; color: #991b1b; }
+
+        footer {
+            text-align: center;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <i class="fas fa-camera-retro"></i>
+        <h1>Timestamp Report</h1>
+        <p>Ambil gambar | Stamp waktu & lokasi | Kirim laporan</p>
+    </div>
+
+    <!-- Tombol Galeri & Kamera -->
+    <div class="image-buttons">
+        <button class="btn-icon" id="galleryBtn"><i class="fas fa-images"></i> Galeri</button>
+        <button class="btn-icon" id="cameraBtn"><i class="fas fa-camera"></i> Kamera</button>
+    </div>
+
+    <!-- Preview Gambar -->
+    <div class="preview">
+        <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14h-2v-4H7v-2h2V7h2v4h4v2h-4v4z'/%3E%3C/svg%3E" alt="Preview">
+        <div class="preview-text"><i class="fas fa-watermark"></i> Watermark otomatis</div>
+    </div>
+
+    <!-- Info Waktu & Lokasi -->
+    <div class="info">
+        <div class="time"><span id="displayTime">--:--</span> <span id="displayAmPm" style="font-size:1rem;">--</span></div>
+        <div class="date" id="displayDate">---, -- --- ----</div>
+        <div class="loc">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="displayLocation">Mengambil lokasi...</span>
+            <span class="refresh-loc" id="refreshGeoBtn"><i class="fas fa-sync-alt"></i> Refresh</span>
+        </div>
+    </div>
+
+    <!-- Dua Tombol Utama -->
+    <div class="btn-group">
+        <button class="btn-primary btn-wa-text" id="sendTextBtn"><i class="fab fa-whatsapp"></i> Kirim Teks ke WA</button>
+        <button class="btn-primary btn-wa" id="sendImageBtn"><i class="fas fa-camera"></i> Kirim Gambar + Teks</button>
+    </div>
+
+    <!-- Preview Pesan -->
+    <div class="msg-preview" id="messagePreview">Menunggu data...</div>
+
+    <!-- Kotak Manual Copy (fallback) -->
+    <div class="manual-box" id="manualBox">
+        <textarea id="manualText" rows="4" readonly></textarea>
+        <button class="btn-select" id="selectAllBtn"><i class="fas fa-hand-pointer"></i> Pilih Semua Teks</button>
+        <p style="font-size:10px; margin-top:8px; color:#b45309;">Tekan & tahan pada teks ➜ pilih Salin</p>
+    </div>
+
+    <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
+    <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp</footer>
+</div>
+
+<script>
+    // ==================== VARIABEL ====================
+    let selectedImageFile = null;
+    let originalImageDataURL = null;
+    let watermarkedBlob = null;
+    let currentLocation = { lat: null, lng: null, address: "Mengambil lokasi..." };
+    let currentMessage = "Menunggu data...";
+
+    // DOM Elements
+    const galleryBtn = document.getElementById('galleryBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const imagePreview = document.getElementById('imagePreview');
+    const sendImageBtn = document.getElementById('sendImageBtn');
+    const sendTextBtn = document.getElementById('sendTextBtn');
+    const messagePreview = document.getElementById('messagePreview');
+    const statusMsg = document.getElementById('statusMsg');
+    const manualBox = document.getElementById('manualBox');
+    const manualText = document.getElementById('manualText');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const displayTime = document.getElementById('displayTime');
+    const displayAmPm = document.getElementById('displayAmPm');
+    const displayDate = document.getElementById('displayDate');
+    const displayLocation = document.getElementById('displayLocation');
+    const refreshGeoBtn = document.getElementById('refreshGeoBtn');
+
+    // ==================== FUNGSI WAKTU ====================
+    function getTimestamp() {
+        const now = new Date();
+        let h = now.getHours();
+        const m = now.getMinutes().toString().padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        const time = `${h.toString().padStart(2, '0')}:${m}`;
+        
+        const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const date = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        
+        return { time, ampm, date, full: `${time} ${ampm}, ${date}` };
+    }
+
+    function updateTime() {
+        const ts = getTimestamp();
+        displayTime.textContent = ts.time;
+        displayAmPm.textContent = ts.ampm;
+        displayDate.textContent = ts.date;
+        updateMessage();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // ==================== UPDATE PESAN ====================
+    function updateMessage() {
+        const ts = getTimestamp();
+        let locText = "Lokasi tidak tersedia";
+        let mapsLink = "";
+        
+        if (currentLocation.lat && currentLocation.lng) {
+            const lat = currentLocation.lat.toFixed(6);
+            const lng = currentLocation.lng.toFixed(6);
+            mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+            locText = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address : `${lat}, ${lng}`;
+        }
+        
+        currentMessage = `📸 *TIMESTAMP REPORT*\n━━━━━━━━━━━━━━━━━━━\n🕒 *Waktu:* ${ts.full}\n📍 *Lokasi:* ${locText}\n🗺️ *Maps:* ${mapsLink || "Tidak tersedia"}\n━━━━━━━━━━━━━━━━━━━\n✅ Laporan via Timestamp Report`;
+        
+        messagePreview.textContent = currentMessage;
+        manualText.value = currentMessage;
+    }
+
+    // ==================== LOKASI (DIPAKSA) ====================
+    function forceGetLocation() {
+        statusMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Meminta izin lokasi...';
+        statusMsg.classList.remove('success', 'error');
+        
+        if (!navigator.geolocation) {
+            displayLocation.innerHTML = 'GPS tidak support';
+            updateMessage();
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                currentLocation.lat = pos.coords.latitude;
+                currentLocation.lng = pos.coords.longitude;
+                displayLocation.innerHTML = `<i class="fas fa-location-dot"></i> ${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
+                
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLocation.lat}&lon=${currentLocation.lng}&accept-language=id`, {
+                    headers: { 'User-Agent': 'TimestampApp/1.0' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.display_name) {
+                        let addr = data.display_name;
+                        if (addr.length > 45) addr = addr.substring(0, 42) + '...';
+                        currentLocation.address = addr;
+                        displayLocation.innerHTML = `<i class="fas fa-location-dot"></i> ${addr}`;
+                    }
+                    updateMessage();
+                })
+                .catch(() => { updateMessage(); });
+                
+                statusMsg.innerHTML = '✅ Lokasi siap';
+                statusMsg.classList.add('success');
+                setTimeout(() => statusMsg.classList.remove('success'), 2000);
+                updateMessage();
+            },
+            (err) => {
+                console.error("Geo error:", err);
+                let errorMsg = "Izin lokasi ditolak";
+                if (err.code === 1) errorMsg = "⚠️ Izin ditolak. Buka Pengaturan → Aplikasi → Chrome → Izin → Lokasi → Izinkan";
+                else if (err.code === 2) errorMsg = "Lokasi tidak tersedia";
+                else if (err.code === 3) errorMsg = "Timeout, coba lagi";
+                
+                displayLocation.innerHTML = `⚠️ ${errorMsg.substring(0, 40)}`;
+                statusMsg.innerHTML = errorMsg;
+                statusMsg.classList.add('error');
+                updateMessage();
+                
+                if (err.code === 1) {
+                    setTimeout(() => {
+                        statusMsg.innerHTML = '💡 Klik refresh lokasi untuk coba lagi setelah mengaktifkan izin';
+                    }, 3000);
+                }
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+    
+    forceGetLocation();
+    refreshGeoBtn.addEventListener('click', forceGetLocation);
+
+    // ==================== WATERMARK GAMBAR ====================
+    async function addWatermark(imgDataURL, timeText, locText) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const fontSize = Math.max(12, Math.floor(canvas.width / 30));
+                ctx.font = `bold ${fontSize}px "Segoe UI"`;
+                const lines = [`📸 ${timeText}`, `📍 ${locText}`];
+                
+                let maxW = 0;
+                lines.forEach(l => { maxW = Math.max(maxW, ctx.measureText(l).width); });
+                const pad = fontSize * 0.6;
+                const boxW = maxW + pad * 2;
+                const boxH = (fontSize * 1.4 * lines.length) + pad;
+                const x = canvas.width - boxW - 10;
+                const y = canvas.height - boxH - 10;
+                
+                if (x > 0 && y > 0) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+                    ctx.fillRect(x, y, boxW, boxH);
+                    ctx.fillStyle = '#fff';
+                    ctx.shadowBlur = 2;
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, x + pad, y + pad + (fontSize * 1.4 * i) + fontSize * 0.7);
+                    });
+                    ctx.shadowBlur = 0;
+                }
+                canvas.toBlob(resolve, 'image/jpeg', 0.9);
+            };
+            img.src = imgDataURL;
+        });
+    }
+
+    // ==================== AMBIL GAMBAR ====================
+    function triggerImage(useCamera = false) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        if (useCamera && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+            input.setAttribute('capture', 'environment');
+        }
+        
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                statusMsg.innerHTML = '❌ Pilih file gambar';
+                statusMsg.classList.add('error');
+                setTimeout(() => statusMsg.classList.remove('error'), 1500);
+                return;
+            }
+            selectedImageFile = file;
+            statusMsg.innerHTML = '🎨 Memberi watermark...';
+            
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                originalImageDataURL = ev.target.result;
+                const ts = getTimestamp();
+                let locShort = "Lokasi tidak tersedia";
+                if (currentLocation.lat && currentLocation.lng) {
+                    locShort = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address.substring(0, 40) : `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
+                }
+                const watermarked = await addWatermark(originalImageDataURL, ts.full, locShort);
+                watermarkedBlob = watermarked;
+                const url = URL.createObjectURL(watermarked);
+                imagePreview.src = url;
+                statusMsg.innerHTML = '✅ Gambar siap';
+                statusMsg.classList.add('success');
+                setTimeout(() => statusMsg.classList.remove('success'), 1500);
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    }
+
+    galleryBtn.addEventListener('click', () => triggerImage(false));
+    cameraBtn.addEventListener('click', () => triggerImage(true));
+
+    // ==================== KIRIM TEKS KE WA (BARU) ====================
+    function sendTextToWA() {
+        if (!currentMessage || currentMessage === "Menunggu data...") {
+            statusMsg.innerHTML = '⏳ Data laporan belum siap';
+            statusMsg.classList.add('error');
+            setTimeout(() => statusMsg.classList.remove('error'), 1500);
+            return;
+        }
+        
+        const encodedMsg = encodeURIComponent(currentMessage);
+        const waUrl = `https://wa.me/?text=${encodedMsg}`;
+        window.open(waUrl, '_blank');
+        
+        statusMsg.innerHTML = '📱 WhatsApp terbuka dengan teks laporan';
+        statusMsg.classList.add('success');
+        setTimeout(() => statusMsg.classList.remove('success'), 2000);
+    }
+    
+    sendTextBtn.addEventListener('click', sendTextToWA);
+
+    // ==================== KIRIM GAMBAR + TEKS KE WA ====================
+    async function sendImageToWA() {
+        if (!selectedImageFile) {
+            statusMsg.innerHTML = '❌ Ambil gambar dulu';
+            statusMsg.classList.add('error');
+            setTimeout(() => statusMsg.classList.remove('error'), 1500);
+            return;
+        }
+        
+        sendImageBtn.disabled = true;
+        sendImageBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Memproses...';
+        
+        try {
+            const ts = getTimestamp();
+            let locShort = "Lokasi tidak tersedia";
+            if (currentLocation.lat && currentLocation.lng) {
+                locShort = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address : `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
+            }
+            
+            if (!watermarkedBlob && originalImageDataURL) {
+                watermarkedBlob = await addWatermark(originalImageDataURL, ts.full, locShort);
+                imagePreview.src = URL.createObjectURL(watermarkedBlob);
+            }
+            
+            const imgFile = new File([watermarkedBlob], `report_${Date.now()}.jpg`, { type: 'image/jpeg' });
+            
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [imgFile] })) {
+                await navigator.share({
+                    title: 'Timestamp Report',
+                    text: currentMessage,
+                    files: [imgFile]
+                });
+                statusMsg.innerHTML = '✅ Berhasil dikirim!';
+            } else {
+                const waUrl = `https://wa.me/?text=${encodeURIComponent(currentMessage + "\n\n📸 *Gambar dengan watermark sudah siap di preview di atas*")}`;
+                window.open(waUrl, '_blank');
+                statusMsg.innerHTML = '📱 WhatsApp terbuka, kirim gambar dari preview';
+            }
+            statusMsg.classList.add('success');
+            setTimeout(() => statusMsg.classList.remove('success'), 2000);
+        } catch (err) {
+            statusMsg.innerHTML = '❌ Gagal: ' + err.message;
+            statusMsg.classList.add('error');
+        } finally {
+            sendImageBtn.disabled = false;
+            sendImageBtn.innerHTML = '<i class="fas fa-camera"></i> Kirim Gambar + Teks';
+        }
+    }
+    
+    sendImageBtn.addEventListener('click', sendImageToWA);
+
+    // ==================== COPY LAPORAN (FALLBACK) ====================
+    async function copyReport() {
+        if (!currentMessage || currentMessage === "Menunggu data...") {
+            statusMsg.innerHTML = '⏳ Data belum siap';
+            return;
+        }
+        
+        manualBox.classList.remove('show');
+        
+        try {
+            await navigator.clipboard.writeText(currentMessage);
+            statusMsg.innerHTML = '✅ Laporan tersalin!';
+            statusMsg.classList.add('success');
+            setTimeout(() => statusMsg.classList.remove('success'), 2000);
+            return;
+        } catch (e) {}
+        
+        try {
+            const temp = document.createElement('textarea');
+            temp.value = currentMessage;
+            temp.style.position = 'fixed';
+            temp.style.top = '-1000px';
+            document.body.appendChild(temp);
+            temp.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(temp);
+            if (ok) {
+                statusMsg.innerHTML = '✅ Laporan tersalin!';
+                statusMsg.classList.add('success');
+                setTimeout(() => statusMsg.classList.remove('success'), 2000);
+                return;
+            }
+        } catch (e) {}
+        
+        manualBox.classList.add('show');
+        manualText.value = currentMessage;
+        manualText.focus();
+        manualText.select();
+        statusMsg.innerHTML = '📋 Tekan & tahan pada teks, pilih Salin';
+        statusMsg.classList.add('error');
+        manualBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    selectAllBtn.addEventListener('click', () => {
+        manualText.select();
+        manualText.setSelectionRange(0, 99999);
+        statusMsg.innerHTML = '✅ Teks terpilih, sekarang tekan & tahan ➜ Salin';
+        statusMsg.classList.add('success');
+        setTimeout(() => statusMsg.classList.remove('success'), 2000);
+    });
+    
+    updateMessage();
+</script>
+</body>
+</html>
