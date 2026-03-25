@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Timestamp Report - With Time Format Toggle</title>
+    <title>Timestamp Report - With Layout Toggle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -83,37 +83,57 @@
             display: flex;
             flex-direction: column;
             gap: clamp(16px, 3vw, 24px);
+            transition: all 0.3s ease;
         }
 
-        /* Responsive Grid untuk Landscape */
-        @media (min-width: 768px) and (orientation: landscape) {
-            .liquid-container {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 24px;
-            }
-            
-            .left-section {
-                grid-column: 1;
-            }
-            
-            .right-section {
-                grid-column: 2;
-            }
-            
-            .full-width {
-                grid-column: 1 / -1;
-            }
-            
-            .preview img {
-                max-height: 250px;
-            }
-            
-            .info {
-                margin-bottom: 0;
-            }
-            
-            .btn-group {
+        /* LAYOUT MODE - LANDSCAPE (user selected) */
+        .liquid-container.landscape-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .liquid-container.landscape-layout .left-section {
+            grid-column: 1;
+        }
+        
+        .liquid-container.landscape-layout .right-section {
+            grid-column: 2;
+        }
+        
+        .liquid-container.landscape-layout .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .liquid-container.landscape-layout .preview img {
+            max-height: 250px;
+        }
+        
+        .liquid-container.landscape-layout .info {
+            margin-bottom: 0;
+        }
+        
+        .liquid-container.landscape-layout .btn-group {
+            flex-direction: row;
+        }
+
+        /* LAYOUT MODE - PORTRAIT (default) */
+        .liquid-container.portrait-layout {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(16px, 3vw, 24px);
+        }
+        
+        .liquid-container.portrait-layout .preview img {
+            max-height: clamp(150px, 30vh, 280px);
+        }
+        
+        .liquid-container.portrait-layout .btn-group {
+            flex-direction: column;
+        }
+        
+        @media (min-width: 768px) {
+            .liquid-container.portrait-layout .btn-group {
                 flex-direction: row;
             }
         }
@@ -124,7 +144,7 @@
                 max-width: 600px;
             }
             
-            .preview img {
+            .liquid-container.portrait-layout .preview img {
                 max-height: 220px;
             }
         }
@@ -148,48 +168,26 @@
             }
         }
 
-        /* Untuk mobile landscape */
+        /* Untuk mobile landscape - tetap mengikuti layout yang dipilih user */
         @media (max-width: 767px) and (orientation: landscape) {
             .card {
                 max-width: 95%;
             }
             
-            .liquid-container {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 16px;
-            }
-            
-            .left-section {
-                grid-column: 1;
-            }
-            
-            .right-section {
-                grid-column: 2;
-            }
-            
-            .full-width {
-                grid-column: 1 / -1;
-            }
-            
-            .preview img {
+            .liquid-container.landscape-layout .preview img {
                 max-height: 150px;
             }
             
-            .time {
+            .liquid-container.landscape-layout .time {
                 font-size: 1.5rem;
             }
             
-            .btn-group {
-                flex-direction: column;
-            }
-            
-            .btn-primary {
-                padding: 10px;
+            .liquid-container.portrait-layout .preview img {
+                max-height: 150px;
             }
         }
 
-        /* Settings Bar - Theme & Time Format (2 tombol toggle) */
+        /* Settings Bar - 3 tombol toggle */
         .settings-bar {
             display: flex;
             justify-content: flex-end;
@@ -285,7 +283,6 @@
         
         .preview img {
             max-width: 100%;
-            max-height: clamp(150px, 30vh, 280px);
             border-radius: clamp(12px, 2vw, 20px);
             object-fit: contain;
         }
@@ -354,6 +351,16 @@
             gap: clamp(10px, 2vw, 16px);
             margin-bottom: clamp(12px, 2vw, 16px);
             flex-wrap: wrap;
+        }
+        
+        .liquid-container.portrait-layout .btn-group {
+            flex-direction: column;
+        }
+        
+        @media (min-width: 768px) {
+            .liquid-container.portrait-layout .btn-group {
+                flex-direction: row;
+            }
         }
         
         .btn-primary {
@@ -506,8 +513,11 @@
 </head>
 <body class="dark-theme">
 <div class="card">
-    <!-- Settings Bar dengan 2 tombol toggle: Theme dan Time Format -->
+    <!-- Settings Bar - 3 tombol toggle: Theme, Time Format, Layout -->
     <div class="settings-bar">
+        <button class="settings-btn" id="layoutToggleBtn">
+            <i class="fas fa-mobile-alt"></i> <span id="layoutText">Portrait</span>
+        </button>
         <button class="settings-btn" id="timeFormatToggleBtn">
             <i class="fas fa-clock"></i> <span id="timeFormatText">24H</span>
         </button>
@@ -516,7 +526,7 @@
         </button>
     </div>
     
-    <div class="liquid-container">
+    <div class="liquid-container portrait-layout" id="liquidContainer">
         <!-- LEFT SECTION -->
         <div class="left-section">
             <div class="header">
@@ -574,7 +584,7 @@
             </div>
 
             <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
-            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait & Landscape | Format 12H/24H</footer>
+            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait/Landscape Layout</footer>
         </div>
     </div>
 </div>
@@ -587,6 +597,7 @@
     let currentLocation = { lat: null, lng: null, address: "Mengambil lokasi..." };
     let currentMessage = "Menunggu data...";
     let timeFormat = "24"; // Default: 24H format
+    let layoutMode = "portrait"; // Default: portrait layout
 
     // DOM Elements
     const galleryBtn = document.getElementById('galleryBtn');
@@ -607,6 +618,50 @@
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const timeFormatToggleBtn = document.getElementById('timeFormatToggleBtn');
     const timeFormatText = document.getElementById('timeFormatText');
+    const layoutToggleBtn = document.getElementById('layoutToggleBtn');
+    const layoutText = document.getElementById('layoutText');
+    const liquidContainer = document.getElementById('liquidContainer');
+
+    // ==================== LAYOUT MODE FUNCTIONS ====================
+    function setLayoutMode(mode) {
+        layoutMode = mode;
+        liquidContainer.classList.remove('portrait-layout', 'landscape-layout');
+        
+        if (mode === 'landscape') {
+            liquidContainer.classList.add('landscape-layout');
+            layoutText.textContent = 'Landscape';
+            layoutToggleBtn.innerHTML = '<i class="fas fa-tablet-alt"></i> <span id="layoutText">Landscape</span>';
+            // Update icon and text
+            const span = layoutToggleBtn.querySelector('span');
+            if (span) span.textContent = 'Landscape';
+            layoutToggleBtn.innerHTML = '<i class="fas fa-tablet-alt"></i> <span>Landscape</span>';
+        } else {
+            liquidContainer.classList.add('portrait-layout');
+            layoutText.textContent = 'Portrait';
+            layoutToggleBtn.innerHTML = '<i class="fas fa-mobile-alt"></i> <span>Portrait</span>';
+        }
+        
+        localStorage.setItem('timestampLayout', mode);
+    }
+    
+    function toggleLayout() {
+        if (layoutMode === 'portrait') {
+            setLayoutMode('landscape');
+        } else {
+            setLayoutMode('portrait');
+        }
+    }
+    
+    function initLayout() {
+        const savedLayout = localStorage.getItem('timestampLayout');
+        if (savedLayout === 'landscape') {
+            setLayoutMode('landscape');
+        } else {
+            setLayoutMode('portrait');
+        }
+    }
+    
+    layoutToggleBtn.addEventListener('click', toggleLayout);
 
     // ==================== TIME FORMAT FUNCTIONS ====================
     function getFormattedTime(date, format) {
@@ -712,6 +767,7 @@
     
     initTheme();
     initTimeFormat();
+    initLayout();
 
     // ==================== UPDATE PESAN ====================
     function updateMessage() {
@@ -963,9 +1019,10 @@
     // Initial update
     updateTimeDisplay();
     
-    // Deteksi perubahan orientasi
+    // Deteksi perubahan orientasi device (optional)
     window.addEventListener('resize', () => {
-        console.log('Orientation changed');
+        // Tidak mengubah layout pilihan user, hanya untuk logging
+        console.log('Window resized, current layout mode:', layoutMode);
     });
 </script>
 </body>
