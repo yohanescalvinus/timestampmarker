@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Timestamp Report - Liquid Design</title>
+    <title>Timestamp Report - With Time Format Toggle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -23,7 +23,7 @@
             align-items: center;
         }
 
-        /* Light Theme (default) */
+        /* Light Theme */
         body.light-theme {
             background: linear-gradient(135deg, #f0f2f5 0%, #e6e9f0 100%);
             --card-bg: rgba(255, 255, 255, 0.95);
@@ -45,7 +45,7 @@
             --shadow-md: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        /* Dark Theme */
+        /* Dark Theme (Default) */
         body.dark-theme {
             background: linear-gradient(135deg, #0a0c15 0%, #0f111a 100%);
             --card-bg: rgba(30, 31, 44, 0.95);
@@ -189,13 +189,16 @@
             }
         }
 
-        .theme-toggle {
+        /* Settings Bar - Theme & Time Format (2 tombol toggle) */
+        .settings-bar {
             display: flex;
             justify-content: flex-end;
+            gap: clamp(8px, 2vw, 12px);
             margin-bottom: clamp(12px, 2vw, 20px);
+            flex-wrap: wrap;
         }
         
-        .theme-btn {
+        .settings-btn {
             background: var(--btn-icon-bg);
             border: none;
             padding: clamp(6px, 1.5vw, 10px) clamp(12px, 2vw, 18px);
@@ -210,7 +213,7 @@
             backdrop-filter: blur(5px);
         }
         
-        .theme-btn:active {
+        .settings-btn:active {
             transform: scale(0.96);
         }
 
@@ -307,6 +310,10 @@
             font-weight: 700;
             letter-spacing: 1px;
             line-height: 1.2;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .date {
@@ -486,13 +493,26 @@
             background: var(--text-secondary);
             border-radius: 10px;
         }
+        
+        /* Small badge */
+        .format-badge {
+            font-size: 0.6rem;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
     </style>
 </head>
-<body class="light-theme">
+<body class="dark-theme">
 <div class="card">
-    <div class="theme-toggle">
-        <button class="theme-btn" id="themeToggleBtn">
-            <i class="fas fa-moon"></i> <span>Dark Mode</span>
+    <!-- Settings Bar dengan 2 tombol toggle: Theme dan Time Format -->
+    <div class="settings-bar">
+        <button class="settings-btn" id="timeFormatToggleBtn">
+            <i class="fas fa-clock"></i> <span id="timeFormatText">24H</span>
+        </button>
+        <button class="settings-btn" id="themeToggleBtn">
+            <i class="fas fa-sun"></i> <span>Light Mode</span>
         </button>
     </div>
     
@@ -522,7 +542,10 @@
         <div class="right-section">
             <!-- Info Waktu & Lokasi -->
             <div class="info">
-                <div class="time"><span id="displayTime">--:--</span> <span id="displayAmPm" style="font-size:0.8rem;">--</span></div>
+                <div class="time">
+                    <span id="displayTime">--:--</span>
+                    <span id="displayAmPm" class="format-badge" style="font-size:0.7rem;"></span>
+                </div>
                 <div class="date" id="displayDate">---, -- --- ----</div>
                 <div class="loc">
                     <i class="fas fa-map-marker-alt"></i>
@@ -551,7 +574,7 @@
             </div>
 
             <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
-            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait & Landscape</footer>
+            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait & Landscape | Format 12H/24H</footer>
         </div>
     </div>
 </div>
@@ -563,6 +586,7 @@
     let watermarkedBlob = null;
     let currentLocation = { lat: null, lng: null, address: "Mengambil lokasi..." };
     let currentMessage = "Menunggu data...";
+    let timeFormat = "24"; // Default: 24H format
 
     // DOM Elements
     const galleryBtn = document.getElementById('galleryBtn');
@@ -581,6 +605,75 @@
     const displayLocation = document.getElementById('displayLocation');
     const refreshGeoBtn = document.getElementById('refreshGeoBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const timeFormatToggleBtn = document.getElementById('timeFormatToggleBtn');
+    const timeFormatText = document.getElementById('timeFormatText');
+
+    // ==================== TIME FORMAT FUNCTIONS ====================
+    function getFormattedTime(date, format) {
+        if (format === "24") {
+            const h = date.getHours().toString().padStart(2, '0');
+            const m = date.getMinutes().toString().padStart(2, '0');
+            return { time: `${h}:${m}`, ampm: "" };
+        } else {
+            let h = date.getHours();
+            const m = date.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return { time: `${h.toString().padStart(2, '0')}:${m}`, ampm: ampm };
+        }
+    }
+    
+    function getTimestamp() {
+        const now = new Date();
+        const formatted = getFormattedTime(now, timeFormat);
+        
+        const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const date = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        
+        const fullTime = formatted.ampm ? `${formatted.time} ${formatted.ampm}` : formatted.time;
+        return { time: formatted.time, ampm: formatted.ampm, date: date, full: `${fullTime}, ${date}` };
+    }
+    
+    function updateTimeDisplay() {
+        const ts = getTimestamp();
+        displayTime.textContent = ts.time;
+        if (timeFormat === "12") {
+            displayAmPm.textContent = ts.ampm;
+            displayAmPm.style.display = "inline-block";
+        } else {
+            displayAmPm.textContent = "24H";
+            displayAmPm.style.display = "inline-block";
+        }
+        displayDate.textContent = ts.date;
+        updateMessage();
+    }
+    
+    function toggleTimeFormat() {
+        if (timeFormat === "24") {
+            timeFormat = "12";
+            timeFormatText.textContent = "12H";
+        } else {
+            timeFormat = "24";
+            timeFormatText.textContent = "24H";
+        }
+        localStorage.setItem('timestampTimeFormat', timeFormat);
+        updateTimeDisplay();
+    }
+    
+    function initTimeFormat() {
+        const savedFormat = localStorage.getItem('timestampTimeFormat');
+        if (savedFormat === "12") {
+            timeFormat = "12";
+            timeFormatText.textContent = "12H";
+        } else {
+            timeFormat = "24";
+            timeFormatText.textContent = "24H";
+        }
+        updateTimeDisplay();
+    }
+    
+    timeFormatToggleBtn.addEventListener('click', toggleTimeFormat);
 
     // ==================== THEME TOGGLE ====================
     function setTheme(theme) {
@@ -600,10 +693,11 @@
     
     function initTheme() {
         const savedTheme = localStorage.getItem('timestampTheme');
-        if (savedTheme === 'dark') {
-            setTheme('dark');
-        } else {
+        // Default: Dark Mode
+        if (savedTheme === 'light') {
             setTheme('light');
+        } else {
+            setTheme('dark');
         }
     }
     
@@ -617,32 +711,7 @@
     });
     
     initTheme();
-
-    // ==================== FUNGSI WAKTU ====================
-    function getTimestamp() {
-        const now = new Date();
-        let h = now.getHours();
-        const m = now.getMinutes().toString().padStart(2, '0');
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12 || 12;
-        const time = `${h.toString().padStart(2, '0')}:${m}`;
-        
-        const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-        const date = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        
-        return { time, ampm, date, full: `${time} ${ampm}, ${date}` };
-    }
-
-    function updateTime() {
-        const ts = getTimestamp();
-        displayTime.textContent = ts.time;
-        displayAmPm.textContent = ts.ampm;
-        displayDate.textContent = ts.date;
-        updateMessage();
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
+    initTimeFormat();
 
     // ==================== UPDATE PESAN ====================
     function updateMessage() {
@@ -662,6 +731,9 @@
         messagePreview.textContent = currentMessage;
         manualText.value = currentMessage;
     }
+    
+    // Timer update setiap detik
+    setInterval(updateTimeDisplay, 1000);
 
     // ==================== LOKASI ====================
     function forceGetLocation() {
@@ -888,11 +960,11 @@
         setTimeout(() => statusMsg.classList.remove('success'), 2000);
     });
     
-    updateMessage();
+    // Initial update
+    updateTimeDisplay();
     
-    // Deteksi perubahan orientasi untuk mengoptimalkan tampilan
+    // Deteksi perubahan orientasi
     window.addEventListener('resize', () => {
-        // Optional: bisa tambahkan logika tambahan jika diperlukan
         console.log('Orientation changed');
     });
 </script>
