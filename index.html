@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Timestamp Report</title>
+    <title>Timestamp Report - With Map Picker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease, all 0.2s ease;
+            transition: background-color 0.3s ease, border-color 0.2s ease, color 0.2s ease;
         }
 
         /* ========== THEME VARIABLES ========== */
@@ -43,6 +46,7 @@
             --manual-border: #fcd34d;
             --shadow-sm: 0 4px 6px rgba(0,0,0,0.07);
             --shadow-md: 0 10px 25px rgba(0,0,0,0.1);
+            --modal-overlay: rgba(0,0,0,0.5);
         }
 
         /* Dark Theme (Default) */
@@ -65,6 +69,7 @@
             --manual-border: #b45309;
             --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
             --shadow-md: 0 10px 25px rgba(0,0,0,0.4);
+            --modal-overlay: rgba(0,0,0,0.7);
         }
 
         .card {
@@ -75,7 +80,6 @@
             border-radius: clamp(24px, 5vw, 40px);
             padding: clamp(20px, 4vw, 32px);
             box-shadow: var(--shadow-md);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* ========== LIQUID GRID LAYOUT ========== */
@@ -208,11 +212,15 @@
             gap: 8px;
             color: var(--text-primary);
             transition: all 0.2s;
-            backdrop-filter: blur(5px);
+        }
+        
+        .settings-btn:hover {
+            opacity: 0.85;
+            transform: scale(0.98);
         }
         
         .settings-btn:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
 
         .header {
@@ -263,11 +271,15 @@
             cursor: pointer;
             color: var(--text-primary);
             transition: all 0.2s;
-            backdrop-filter: blur(5px);
+        }
+        
+        .btn-icon:hover {
+            opacity: 0.85;
+            transform: scale(0.98);
         }
         
         .btn-icon:active {
-            transform: scale(0.97);
+            transform: scale(0.96);
             background: var(--btn-icon-hover);
         }
 
@@ -278,7 +290,6 @@
             text-align: center;
             margin-bottom: clamp(16px, 3vw, 20px);
             border: 1px solid var(--border-light);
-            transition: all 0.3s;
         }
         
         .preview img {
@@ -331,18 +342,27 @@
             flex-wrap: wrap;
         }
         
-        .refresh-loc {
+        .loc-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .refresh-loc, .pick-loc {
             background: rgba(255,255,255,0.2);
             padding: 4px 10px;
             border-radius: 20px;
             font-size: clamp(9px, 1.5vw, 11px);
             cursor: pointer;
-            margin-left: auto;
             transition: 0.2s;
             white-space: nowrap;
         }
         
-        .refresh-loc:active {
+        .refresh-loc:hover, .pick-loc:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .refresh-loc:active, .pick-loc:active {
             transform: scale(0.95);
         }
 
@@ -380,12 +400,19 @@
             transition: all 0.2s;
         }
         
-        .btn-primary:active {
-            transform: scale(0.97);
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
         }
         
-        .btn-copy {
-            background: #10b981;
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .btn-wa {
@@ -447,6 +474,16 @@
             margin-top: 8px;
             cursor: pointer;
             font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+            transition: all 0.2s;
+        }
+        
+        .btn-select:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+        
+        .btn-select:active {
+            transform: scale(0.96);
         }
 
         .status {
@@ -482,7 +519,7 @@
             50% { opacity: 0.5; }
         }
         
-        .fa-spinner {
+        .fa-spinner, .fa-pulse {
             animation: pulse 1s ease-in-out infinite;
         }
         
@@ -509,20 +546,128 @@
             border-radius: 20px;
             margin-left: 8px;
         }
+
+        /* Modal Map Picker */
+        .map-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        .map-modal.show {
+            display: flex;
+        }
+        
+        .map-container {
+            width: 90%;
+            max-width: 800px;
+            height: 70vh;
+            background: var(--card-bg);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .map-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--btn-icon-bg);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .map-header h3 {
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        .close-map {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        
+        .close-map:hover {
+            background: var(--btn-icon-hover);
+        }
+        
+        #map {
+            flex: 1;
+            width: 100%;
+            background: var(--preview-bg);
+        }
+        
+        .map-footer {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: var(--btn-icon-bg);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .map-footer button {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        
+        .confirm-loc {
+            background: #10b981;
+            color: white;
+        }
+        
+        .cancel-loc {
+            background: var(--btn-icon-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+        
+        .selected-coord {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+        
+        @media (max-width: 600px) {
+            .map-container {
+                width: 95%;
+                height: 80vh;
+            }
+        }
     </style>
 </head>
 <body class="dark-theme">
 <div class="card">
-    <!-- Settings Bar - 3 tombol toggle: Theme, Time Format, Layout -->
+    <!-- Settings Bar - 3 tombol toggle: Layout, Time Format, Theme -->
     <div class="settings-bar">
         <button class="settings-btn" id="layoutToggleBtn">
-            <i class="fas fa-mobile-alt"></i> <span id="layoutText">Portrait</span>
+            <i class="fas fa-mobile-alt"></i> <span>Portrait</span>
         </button>
         <button class="settings-btn" id="timeFormatToggleBtn">
-            <i class="fas fa-clock"></i> <span id="timeFormatText">24H</span>
+            <i class="fas fa-clock"></i> <span>24H</span>
         </button>
         <button class="settings-btn" id="themeToggleBtn">
-            <i class="fas fa-sun"></i> <span>Light Mode</span>
+            <i class="fas fa-moon"></i> <span>Dark Mode</span>
         </button>
     </div>
     
@@ -538,492 +683,4 @@
             <!-- Tombol Galeri & Kamera -->
             <div class="image-buttons">
                 <button class="btn-icon" id="galleryBtn"><i class="fas fa-images"></i> Galeri</button>
-                <button class="btn-icon" id="cameraBtn"><i class="fas fa-camera"></i> Kamera</button>
-            </div>
-
-            <!-- Preview Gambar -->
-            <div class="preview">
-                <img id="imagePreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14h-2v-4H7v-2h2V7h2v4h4v2h-4v4z'/%3E%3C/svg%3E" alt="Preview">
-                <div class="preview-text"><i class="fas fa-watermark"></i> Watermark otomatis</div>
-            </div>
-        </div>
-
-        <!-- RIGHT SECTION -->
-        <div class="right-section">
-            <!-- Info Waktu & Lokasi -->
-            <div class="info">
-                <div class="time">
-                    <span id="displayTime">--:--</span>
-                    <span id="displayAmPm" class="format-badge" style="font-size:0.7rem;"></span>
-                </div>
-                <div class="date" id="displayDate">---, -- --- ----</div>
-                <div class="loc">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span id="displayLocation">Mengambil lokasi...</span>
-                    <span class="refresh-loc" id="refreshGeoBtn"><i class="fas fa-sync-alt"></i> Refresh</span>
-                </div>
-            </div>
-
-            <!-- Dua Tombol Utama -->
-            <div class="btn-group">
-                <button class="btn-primary btn-wa-text" id="sendTextBtn"><i class="fab fa-whatsapp"></i> Kirim Teks</button>
-                <button class="btn-primary btn-wa" id="sendImageBtn"><i class="fas fa-camera"></i> Kirim Gambar</button>
-            </div>
-        </div>
-
-        <!-- FULL WIDTH SECTION (Preview Pesan & Manual Copy) -->
-        <div class="full-width">
-            <!-- Preview Pesan -->
-            <div class="msg-preview" id="messagePreview">Menunggu data...</div>
-
-            <!-- Kotak Manual Copy (fallback) -->
-            <div class="manual-box" id="manualBox">
-                <textarea id="manualText" rows="4" readonly></textarea>
-                <button class="btn-select" id="selectAllBtn"><i class="fas fa-hand-pointer"></i> Pilih Semua Teks</button>
-                <p style="font-size:10px; margin-top:8px; color:var(--manual-border);">Tekan & tahan pada teks ➜ pilih Salin</p>
-            </div>
-
-            <div id="statusMsg" class="status"><i class="fas fa-location-dot"></i> Meminta izin lokasi...</div>
-            <footer>Ambil gambar → Kirim teks atau kirim gambar+teks ke WhatsApp | Support Portrait/Landscape Layout</footer>
-        </div>
-    </div>
-</div>
-
-<script>
-    // ==================== VARIABEL ====================
-    let selectedImageFile = null;
-    let originalImageDataURL = null;
-    let watermarkedBlob = null;
-    let currentLocation = { lat: null, lng: null, address: "Mengambil lokasi..." };
-    let currentMessage = "Menunggu data...";
-    let timeFormat = "24"; // Default: 24H format
-    let layoutMode = "portrait"; // Default: portrait layout
-
-    // DOM Elements
-    const galleryBtn = document.getElementById('galleryBtn');
-    const cameraBtn = document.getElementById('cameraBtn');
-    const imagePreview = document.getElementById('imagePreview');
-    const sendImageBtn = document.getElementById('sendImageBtn');
-    const sendTextBtn = document.getElementById('sendTextBtn');
-    const messagePreview = document.getElementById('messagePreview');
-    const statusMsg = document.getElementById('statusMsg');
-    const manualBox = document.getElementById('manualBox');
-    const manualText = document.getElementById('manualText');
-    const selectAllBtn = document.getElementById('selectAllBtn');
-    const displayTime = document.getElementById('displayTime');
-    const displayAmPm = document.getElementById('displayAmPm');
-    const displayDate = document.getElementById('displayDate');
-    const displayLocation = document.getElementById('displayLocation');
-    const refreshGeoBtn = document.getElementById('refreshGeoBtn');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const timeFormatToggleBtn = document.getElementById('timeFormatToggleBtn');
-    const timeFormatText = document.getElementById('timeFormatText');
-    const layoutToggleBtn = document.getElementById('layoutToggleBtn');
-    const layoutText = document.getElementById('layoutText');
-    const liquidContainer = document.getElementById('liquidContainer');
-
-    // ==================== LAYOUT MODE FUNCTIONS ====================
-    function setLayoutMode(mode) {
-        layoutMode = mode;
-        liquidContainer.classList.remove('portrait-layout', 'landscape-layout');
-        
-        if (mode === 'landscape') {
-            liquidContainer.classList.add('landscape-layout');
-            layoutText.textContent = 'Landscape';
-            layoutToggleBtn.innerHTML = '<i class="fas fa-tablet-alt"></i> <span id="layoutText">Landscape</span>';
-            // Update icon and text
-            const span = layoutToggleBtn.querySelector('span');
-            if (span) span.textContent = 'Landscape';
-            layoutToggleBtn.innerHTML = '<i class="fas fa-tablet-alt"></i> <span>Landscape</span>';
-        } else {
-            liquidContainer.classList.add('portrait-layout');
-            layoutText.textContent = 'Portrait';
-            layoutToggleBtn.innerHTML = '<i class="fas fa-mobile-alt"></i> <span>Portrait</span>';
-        }
-        
-        localStorage.setItem('timestampLayout', mode);
-    }
-    
-    function toggleLayout() {
-        if (layoutMode === 'portrait') {
-            setLayoutMode('landscape');
-        } else {
-            setLayoutMode('portrait');
-        }
-    }
-    
-    function initLayout() {
-        const savedLayout = localStorage.getItem('timestampLayout');
-        if (savedLayout === 'landscape') {
-            setLayoutMode('landscape');
-        } else {
-            setLayoutMode('portrait');
-        }
-    }
-    
-    layoutToggleBtn.addEventListener('click', toggleLayout);
-
-    // ==================== TIME FORMAT FUNCTIONS ====================
-    function getFormattedTime(date, format) {
-        if (format === "24") {
-            const h = date.getHours().toString().padStart(2, '0');
-            const m = date.getMinutes().toString().padStart(2, '0');
-            return { time: `${h}:${m}`, ampm: "" };
-        } else {
-            let h = date.getHours();
-            const m = date.getMinutes().toString().padStart(2, '0');
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            return { time: `${h.toString().padStart(2, '0')}:${m}`, ampm: ampm };
-        }
-    }
-    
-    function getTimestamp() {
-        const now = new Date();
-        const formatted = getFormattedTime(now, timeFormat);
-        
-        const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-        const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-        const date = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        
-        const fullTime = formatted.ampm ? `${formatted.time} ${formatted.ampm}` : formatted.time;
-        return { time: formatted.time, ampm: formatted.ampm, date: date, full: `${fullTime}, ${date}` };
-    }
-    
-    function updateTimeDisplay() {
-        const ts = getTimestamp();
-        displayTime.textContent = ts.time;
-        if (timeFormat === "12") {
-            displayAmPm.textContent = ts.ampm;
-            displayAmPm.style.display = "inline-block";
-        } else {
-            displayAmPm.textContent = "24H";
-            displayAmPm.style.display = "inline-block";
-        }
-        displayDate.textContent = ts.date;
-        updateMessage();
-    }
-    
-    function toggleTimeFormat() {
-        if (timeFormat === "24") {
-            timeFormat = "12";
-            timeFormatText.textContent = "12H";
-        } else {
-            timeFormat = "24";
-            timeFormatText.textContent = "24H";
-        }
-        localStorage.setItem('timestampTimeFormat', timeFormat);
-        updateTimeDisplay();
-    }
-    
-    function initTimeFormat() {
-        const savedFormat = localStorage.getItem('timestampTimeFormat');
-        if (savedFormat === "12") {
-            timeFormat = "12";
-            timeFormatText.textContent = "12H";
-        } else {
-            timeFormat = "24";
-            timeFormatText.textContent = "24H";
-        }
-        updateTimeDisplay();
-    }
-    
-    timeFormatToggleBtn.addEventListener('click', toggleTimeFormat);
-
-    // ==================== THEME TOGGLE ====================
-    function setTheme(theme) {
-        const body = document.body;
-        if (theme === 'dark') {
-            body.classList.remove('light-theme');
-            body.classList.add('dark-theme');
-            localStorage.setItem('timestampTheme', 'dark');
-            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span>Dark Mode</span>';
-        } else {
-            body.classList.remove('dark-theme');
-            body.classList.add('light-theme');
-            localStorage.setItem('timestampTheme', 'light');
-            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span>Light Mode</span>';
-        }
-    }
-    
-    function initTheme() {
-        const savedTheme = localStorage.getItem('timestampTheme');
-        // Default: Dark Mode
-        if (savedTheme === 'light') {
-            setTheme('light');
-        } else {
-            setTheme('dark');
-        }
-    }
-    
-    themeToggleBtn.addEventListener('click', () => {
-        const isDark = document.body.classList.contains('dark-theme');
-        if (isDark) {
-            setTheme('light');
-        } else {
-            setTheme('dark');
-        }
-    });
-    
-    initTheme();
-    initTimeFormat();
-    initLayout();
-
-    // ==================== UPDATE PESAN ====================
-    function updateMessage() {
-        const ts = getTimestamp();
-        let locText = "Lokasi tidak tersedia";
-        let mapsLink = "";
-        
-        if (currentLocation.lat && currentLocation.lng) {
-            const lat = currentLocation.lat.toFixed(6);
-            const lng = currentLocation.lng.toFixed(6);
-            mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-            locText = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address : `${lat}, ${lng}`;
-        }
-        
-        currentMessage = `📸 *TIMESTAMP REPORT*\n━━━━━━━━━━━━━━━━━━━\n🕒 *Waktu:* ${ts.full}\n📍 *Lokasi:* ${locText}\n🗺️ *Maps:* ${mapsLink || "Tidak tersedia"}\n━━━━━━━━━━━━━━━━━━━\n✅ Laporan via Timestamp Report`;
-        
-        messagePreview.textContent = currentMessage;
-        manualText.value = currentMessage;
-    }
-    
-    // Timer update setiap detik
-    setInterval(updateTimeDisplay, 1000);
-
-    // ==================== LOKASI ====================
-    function forceGetLocation() {
-        statusMsg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Meminta izin lokasi...';
-        statusMsg.classList.remove('success', 'error');
-        
-        if (!navigator.geolocation) {
-            displayLocation.innerHTML = 'GPS tidak support';
-            updateMessage();
-            return;
-        }
-        
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                currentLocation.lat = pos.coords.latitude;
-                currentLocation.lng = pos.coords.longitude;
-                displayLocation.innerHTML = `<i class="fas fa-location-dot"></i> ${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
-                
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLocation.lat}&lon=${currentLocation.lng}&accept-language=id`, {
-                    headers: { 'User-Agent': 'TimestampApp/1.0' }
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.display_name) {
-                        let addr = data.display_name;
-                        if (addr.length > 45) addr = addr.substring(0, 42) + '...';
-                        currentLocation.address = addr;
-                        displayLocation.innerHTML = `<i class="fas fa-location-dot"></i> ${addr}`;
-                    }
-                    updateMessage();
-                })
-                .catch(() => { updateMessage(); });
-                
-                statusMsg.innerHTML = '✅ Lokasi siap';
-                statusMsg.classList.add('success');
-                setTimeout(() => statusMsg.classList.remove('success'), 2000);
-                updateMessage();
-            },
-            (err) => {
-                console.error("Geo error:", err);
-                let errorMsg = "Izin lokasi ditolak";
-                if (err.code === 1) errorMsg = "⚠️ Izin ditolak. Buka Pengaturan → Aplikasi → Chrome → Izin → Lokasi → Izinkan";
-                else if (err.code === 2) errorMsg = "Lokasi tidak tersedia";
-                else if (err.code === 3) errorMsg = "Timeout, coba lagi";
-                
-                displayLocation.innerHTML = `⚠️ ${errorMsg.substring(0, 40)}`;
-                statusMsg.innerHTML = errorMsg;
-                statusMsg.classList.add('error');
-                updateMessage();
-                
-                if (err.code === 1) {
-                    setTimeout(() => {
-                        statusMsg.innerHTML = '💡 Klik refresh lokasi untuk coba lagi setelah mengaktifkan izin';
-                    }, 3000);
-                }
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
-    }
-    
-    forceGetLocation();
-    refreshGeoBtn.addEventListener('click', forceGetLocation);
-
-    // ==================== WATERMARK GAMBAR ====================
-    async function addWatermark(imgDataURL, timeText, locText) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                
-                const fontSize = Math.max(12, Math.floor(canvas.width / 30));
-                ctx.font = `bold ${fontSize}px "Segoe UI"`;
-                const lines = [`📸 ${timeText}`, `📍 ${locText}`];
-                
-                let maxW = 0;
-                lines.forEach(l => { maxW = Math.max(maxW, ctx.measureText(l).width); });
-                const pad = fontSize * 0.6;
-                const boxW = maxW + pad * 2;
-                const boxH = (fontSize * 1.4 * lines.length) + pad;
-                const x = canvas.width - boxW - 10;
-                const y = canvas.height - boxH - 10;
-                
-                if (x > 0 && y > 0) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.65)';
-                    ctx.fillRect(x, y, boxW, boxH);
-                    ctx.fillStyle = '#fff';
-                    ctx.shadowBlur = 2;
-                    lines.forEach((line, i) => {
-                        ctx.fillText(line, x + pad, y + pad + (fontSize * 1.4 * i) + fontSize * 0.7);
-                    });
-                    ctx.shadowBlur = 0;
-                }
-                canvas.toBlob(resolve, 'image/jpeg', 0.9);
-            };
-            img.src = imgDataURL;
-        });
-    }
-
-    // ==================== AMBIL GAMBAR ====================
-    function triggerImage(useCamera = false) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        if (useCamera && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-            input.setAttribute('capture', 'environment');
-        }
-        
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file || !file.type.startsWith('image/')) {
-                statusMsg.innerHTML = '❌ Pilih file gambar';
-                statusMsg.classList.add('error');
-                setTimeout(() => statusMsg.classList.remove('error'), 1500);
-                return;
-            }
-            selectedImageFile = file;
-            statusMsg.innerHTML = '🎨 Memberi watermark...';
-            
-            const reader = new FileReader();
-            reader.onload = async (ev) => {
-                originalImageDataURL = ev.target.result;
-                const ts = getTimestamp();
-                let locShort = "Lokasi tidak tersedia";
-                if (currentLocation.lat && currentLocation.lng) {
-                    locShort = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address.substring(0, 40) : `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
-                }
-                const watermarked = await addWatermark(originalImageDataURL, ts.full, locShort);
-                watermarkedBlob = watermarked;
-                const url = URL.createObjectURL(watermarked);
-                imagePreview.src = url;
-                statusMsg.innerHTML = '✅ Gambar siap';
-                statusMsg.classList.add('success');
-                setTimeout(() => statusMsg.classList.remove('success'), 1500);
-            };
-            reader.readAsDataURL(file);
-        };
-        input.click();
-    }
-
-    galleryBtn.addEventListener('click', () => triggerImage(false));
-    cameraBtn.addEventListener('click', () => triggerImage(true));
-
-    // ==================== KIRIM TEKS KE WA ====================
-    function sendTextToWA() {
-        if (!currentMessage || currentMessage === "Menunggu data...") {
-            statusMsg.innerHTML = '⏳ Data laporan belum siap';
-            statusMsg.classList.add('error');
-            setTimeout(() => statusMsg.classList.remove('error'), 1500);
-            return;
-        }
-        
-        const encodedMsg = encodeURIComponent(currentMessage);
-        const waUrl = `https://wa.me/?text=${encodedMsg}`;
-        window.open(waUrl, '_blank');
-        
-        statusMsg.innerHTML = '📱 WhatsApp terbuka dengan teks laporan';
-        statusMsg.classList.add('success');
-        setTimeout(() => statusMsg.classList.remove('success'), 2000);
-    }
-    
-    sendTextBtn.addEventListener('click', sendTextToWA);
-
-    // ==================== KIRIM GAMBAR + TEKS KE WA ====================
-    async function sendImageToWA() {
-        if (!selectedImageFile) {
-            statusMsg.innerHTML = '❌ Ambil gambar dulu';
-            statusMsg.classList.add('error');
-            setTimeout(() => statusMsg.classList.remove('error'), 1500);
-            return;
-        }
-        
-        sendImageBtn.disabled = true;
-        sendImageBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Memproses...';
-        
-        try {
-            const ts = getTimestamp();
-            let locShort = "Lokasi tidak tersedia";
-            if (currentLocation.lat && currentLocation.lng) {
-                locShort = currentLocation.address !== "Mengambil lokasi..." ? currentLocation.address : `${currentLocation.lat.toFixed(5)}, ${currentLocation.lng.toFixed(5)}`;
-            }
-            
-            if (!watermarkedBlob && originalImageDataURL) {
-                watermarkedBlob = await addWatermark(originalImageDataURL, ts.full, locShort);
-                imagePreview.src = URL.createObjectURL(watermarkedBlob);
-            }
-            
-            const imgFile = new File([watermarkedBlob], `report_${Date.now()}.jpg`, { type: 'image/jpeg' });
-            
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [imgFile] })) {
-                await navigator.share({
-                    title: 'Timestamp Report',
-                    text: currentMessage,
-                    files: [imgFile]
-                });
-                statusMsg.innerHTML = '✅ Berhasil dikirim!';
-            } else {
-                const waUrl = `https://wa.me/?text=${encodeURIComponent(currentMessage + "\n\n📸 *Gambar dengan watermark sudah siap di preview di atas*")}`;
-                window.open(waUrl, '_blank');
-                statusMsg.innerHTML = '📱 WhatsApp terbuka, kirim gambar dari preview';
-            }
-            statusMsg.classList.add('success');
-            setTimeout(() => statusMsg.classList.remove('success'), 2000);
-        } catch (err) {
-            statusMsg.innerHTML = '❌ Gagal: ' + err.message;
-            statusMsg.classList.add('error');
-        } finally {
-            sendImageBtn.disabled = false;
-            sendImageBtn.innerHTML = '<i class="fas fa-camera"></i> Kirim Gambar';
-        }
-    }
-    
-    sendImageBtn.addEventListener('click', sendImageToWA);
-
-    // ==================== COPY LAPORAN (FALLBACK) ====================
-    selectAllBtn.addEventListener('click', () => {
-        manualText.select();
-        manualText.setSelectionRange(0, 99999);
-        statusMsg.innerHTML = '✅ Teks terpilih, sekarang tekan & tahan ➜ Salin';
-        statusMsg.classList.add('success');
-        setTimeout(() => statusMsg.classList.remove('success'), 2000);
-    });
-    
-    // Initial update
-    updateTimeDisplay();
-    
-    // Deteksi perubahan orientasi device (optional)
-    window.addEventListener('resize', () => {
-        // Tidak mengubah layout pilihan user, hanya untuk logging
-        console.log('Window resized, current layout mode:', layoutMode);
-    });
-</script>
-</body>
-</html>
+          
